@@ -4,6 +4,7 @@ from sqlalchemy import Column, create_engine, ForeignKey, Table, Engine
 from typing import Optional, List, Set
 import datetime
 import logging
+from bot.config import DATABASE
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -39,6 +40,9 @@ class Settings(Base):
     user: Mapped[List["UserTelegram"]] = relationship(back_populates="settings")
     user_id: Mapped[int] = mapped_column(ForeignKey("users_telegram.id"))
     time_zone: Mapped[Optional[int]] = mapped_column()
+    suitable_time: Mapped[Optional[datetime.time]] = mapped_column()
+    amount: Mapped[Optional[int]] = mapped_column()
+
     on_close: Mapped[Optional[bool]] = mapped_column()
 
 
@@ -84,7 +88,16 @@ class UserSite(Base):
     olimpiads_id: Mapped[Optional[int]] = mapped_column(ForeignKey('olimpiads.id'))
 
 
-class Interaction:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Interaction(metaclass=Singleton):
 
     def __init__(self, database: str):
         self.engine: Engine = create_engine(database)
@@ -160,16 +173,6 @@ class Interaction:
             return user
 
 
-it = Interaction("sqlite:///schedule.db")
-# stages = [it.add_stage(name="Муниципальный этап", description="dkgbrkgbfk"),
-#           it.add_stage(name="Регинальный этап", description="gdgbvfgd")]
-# if not (olimpiad := it.find_olimpiad("ВсОШ")):
-#     olimpiad = it.add_olimpiad(name="ВсОШ", description="fgtrhggfh", stages=stages)
-# if not it.find_user_telegram(11111):
-#     user = it.create_user_telegram(11111)
-#     print(user)
-# else:
-#     user = it.find_user_telegram(11111)
-#     print(user)
-# it.add_subscription(user, olimpiad)
-# print(it.find_olimpiad("ВсОШ")[0])
+db = Interaction(DATABASE)
+db1 = db
+
