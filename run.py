@@ -1,1 +1,1 @@
-from bd.database import *
+from db.init_db import *
