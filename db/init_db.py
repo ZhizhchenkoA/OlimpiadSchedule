@@ -1,10 +1,9 @@
 from __future__ import annotations
 from sqlalchemy.orm import (DeclarativeBase, Mapped, mapped_column, relationship, Session)
 from sqlalchemy import Column, create_engine, ForeignKey, Table, Engine
-from typing import Optional, List, Set
+from typing import Optional, List, Set, NoReturn
 import datetime
 import logging
-from bot.config import DATABASE
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -38,12 +37,11 @@ class Settings(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     user: Mapped[List["UserTelegram"]] = relationship(back_populates="settings")
-    user_id: Mapped[int] = mapped_column(ForeignKey("users_telegram.id"))
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users_telegram.id"))
     time_zone: Mapped[Optional[int]] = mapped_column()
     suitable_time: Mapped[Optional[datetime.time]] = mapped_column()
+    previous_date: Mapped[Optional[int]] = mapped_column()
     amount: Mapped[Optional[int]] = mapped_column()
-
-    on_close: Mapped[Optional[bool]] = mapped_column()
 
 
 class Stage(Base):
@@ -99,50 +97,56 @@ class Singleton(type):
 
 class Interaction(metaclass=Singleton):
 
-    def __init__(self, database: str):
+    def __init__(self, database: str) -> None:
         self.engine: Engine = create_engine(database)
         Base.metadata.create_all(bind=self.engine)
         self.db: Session = Session(bind=self.engine)
 
-    def select_all(self, class_: object):
+    def select_all(self, class_: object) -> List[object]:
         users = self.db.query(class_).all()
         return users
 
     @staticmethod
     def add_stage(name: str, description: str = None, beginning_date: datetime.date = None,
-                  ending_date: datetime.date = None):
+                  ending_date: datetime.date = None) -> Stage:
         return Stage(name=name, description=description, beginning_date=beginning_date, ending_date=ending_date)
 
-    def add_olimpiad(self, name: str, description: str, stages: List[Stage], private=False):
+    def add_olimpiad(self, name: str, description: str, stages: List[Stage], private=False) -> Olimpiad:
         olimpiad = Olimpiad(name=name, description=description, private=private)
         olimpiad.stages = stages
         self.db.add(olimpiad)
         self.db.commit()
         return olimpiad
 
-    def find_olimpiad(self, name: str):
+    def find_olimpiad(self, name: str) -> Olimpiad:
         olimpiad = self.db.query(Olimpiad).filter(Olimpiad.name == name).all()
         return olimpiad
 
-    def find_user_telegram(self, telegram_id: int):
+    def find_user_telegram(self, telegram_id: int) -> UserTelegram:
         if user := self.db.query(UserTelegram).filter(UserTelegram.telegram_id == telegram_id).all():
             return user[0]
         return None
 
-    def create_user_telegram(self, telegram_id: int):
+    def create_user_telegram(self, telegram_id: int) -> UserTelegram:
         user = UserTelegram(telegram_id=telegram_id)
         self.db.add(user)
         self.db.commit()
         return user
 
-    def add_settings(self, user: UserTelegram, time_zone: int, on_close: bool = True):
-        settings = Settings(time_zone=time_zone, on_close=on_close)
+    def add_settings(self, user: UserTelegram, time_zone: int, suitable_time: datetime.time, amount: int,
+                     previous_date: int) -> Settings:
+        settings = Settings(time_zone=time_zone, suitable_time=suitable_time, amount=amount,
+                            previous_date=previous_date)
         user.settings = settings
 
         self.db.commit()
         return settings
 
-    def add_subscription(self, user: UserTelegram, olimpiad: Olimpiad):
+    def del_settings(self, settings):
+        self.db.delete(settings)
+        self.db.commit()
+
+    def add_subscription(self, user: UserTelegram, olimpiad: Olimpiad) -> UserTelegram:
         if user.subscriptions:
             user.subscriptions.update(olimpiad)
         else:
@@ -150,19 +154,19 @@ class Interaction(metaclass=Singleton):
         self.db.commit()
         return user
 
-    def create_site_user(self, user: str, password: str):
+    def create_site_user(self, user: str, password: str) -> UserSite:
         user_obj = UserSite(user=user, password=password)
         self.db.add(user_obj)
         self.db.commit()
         return user_obj
 
-    def find_user(self, name: str):
+    def find_user(self, name: str) -> UserSite:
         if user := self.db.query(UserSite).filter(UserSite.name == name).all():
             return user[0]
         else:
             return None
 
-    def site_user_olimpiads(self, user: UserSite, olimpiad: Olimpiad):
+    def site_user_olimpiads(self, user: UserSite, olimpiad: Olimpiad) -> UserSite:
         if user.added_olimpiads:
             user.added_olimpiads.update(olimpiad)
             self.db.commit()
@@ -171,8 +175,3 @@ class Interaction(metaclass=Singleton):
             user.added_olimpiads = set(olimpiad)
             self.db.commit()
             return user
-
-
-db = Interaction(DATABASE)
-db1 = db
-
