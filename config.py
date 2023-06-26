@@ -5,7 +5,8 @@ from db.init_db import Interaction
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-ADMIN_IDS = [int(os.getenv('ADMIN_ID'))]
+ADMIN_IDS = eval(str(os.getenv('ADMIN_IDS')))
+BOT_NAME = os.getenv('BOT_NAME')
 DATABASE = os.getenv('DRIVER_DB') + os.path.dirname(init_db.__file__) * int(os.getenv('IS_SQLITE')) + '/' * int(
     os.getenv('IS_SQLITE')) + os.getenv('DATABASE')
 DATABASE = DATABASE.replace('\\', '/')

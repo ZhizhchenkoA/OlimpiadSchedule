@@ -120,7 +120,17 @@ class Interaction(metaclass=Singleton):
 
     def find_olimpiad(self, name: str) -> Olimpiad:
         olimpiad = self.db.query(Olimpiad).filter(Olimpiad.name == name).all()
-        return olimpiad
+        if olimpiad:
+            return olimpiad[0]
+        else:
+            return None
+
+    def find_olimpiad_by_id(self, id: int) -> Olimpiad:
+        olimpiad = self.db.query(Olimpiad).filter(Olimpiad.id == id).all()
+        if olimpiad:
+            return olimpiad[0]
+        else:
+            return None
 
     def find_user_telegram(self, telegram_id: int) -> UserTelegram:
         if user := self.db.query(UserTelegram).filter(UserTelegram.telegram_id == telegram_id).all():
@@ -150,7 +160,7 @@ class Interaction(metaclass=Singleton):
         if user.subscriptions:
             user.subscriptions.update(olimpiad)
         else:
-            user.subscriptions = set(olimpiad)
+            user.subscriptions = {olimpiad}
         self.db.commit()
         return user
 

@@ -1,6 +1,6 @@
 from aiogram import Bot, Router
 from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 import datetime
 from bot.utils.states import Settings
@@ -74,3 +74,5 @@ async def amount(message: Message, state: FSMContext):
 
     else:
         await message.answer('Введите число')
+
+
