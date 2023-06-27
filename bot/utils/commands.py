@@ -1,5 +1,6 @@
-from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
+from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChatMember
 from aiogram import Bot
+from config import BOT_ID
 
 
 async def set_commands(bot: Bot, admin: int = None):
@@ -18,12 +19,17 @@ async def set_commands(bot: Bot, admin: int = None):
             description='Помощь'
         ),
         BotCommand(
+            command='show_all',
+            description='Посмотреть все доступные олимпиады'
+        ),
+
+        BotCommand(
             command='add_olimpiad',
             description="Добавить олимпиаду"
         ),
         BotCommand(
-            command='show_olimpiads',
-            description='Посмотреть все доступные олипиады'
+            command='show_my',
+            description='Посмотреть подписки'
         )
     ]
 

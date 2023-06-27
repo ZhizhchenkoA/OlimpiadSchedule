@@ -158,12 +158,18 @@ class Interaction(metaclass=Singleton):
 
     def add_subscription(self, user: UserTelegram, olimpiad: Olimpiad) -> UserTelegram:
         if user.subscriptions:
-            user.subscriptions.update(olimpiad)
+            user.subscriptions.update({olimpiad})
         else:
             user.subscriptions = {olimpiad}
         self.db.commit()
         return user
 
+    def remove_subscription(self, user: UserTelegram, olimpiad: Olimpiad) -> Olimpiad:
+        if olimpiad in user.subscriptions:
+            user.subscriptions.remove(olimpiad)
+            self.db.commit()
+        else:
+            return None
     def create_site_user(self, user: str, password: str) -> UserSite:
         user_obj = UserSite(user=user, password=password)
         self.db.add(user_obj)

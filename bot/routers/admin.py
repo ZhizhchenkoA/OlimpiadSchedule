@@ -13,7 +13,6 @@ router = Router()
 
 @router.message(Command('add_olimpiad'))
 async def start_adding(message: Message, state: FSMContext):
-
     await state.set_state(Admin.add_olimpiad)
     await message.answer("Введите название олимпиады")
 
@@ -30,7 +29,7 @@ async def add_description(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     await state.set_state(Admin.number_of_stages)
     await message.answer("Введите количество этапов "
-                         "(целое число, большее 0")
+                         "(целое число, большее 0)")
 
 
 @router.message(Admin.number_of_stages)
@@ -86,12 +85,13 @@ async def add_stage(message: Message, state: FSMContext):
         await state.update_data(number_of_stages=number_of_stages)
         data = await state.get_data()
         if number_of_stages == 0:
-            db.add_olimpiad(name=data.get('olimpiad'), description=data.get('description'), stages=data.get('stage_list'))
+            db.add_olimpiad(name=data.get('olimpiad'), description=data.get('description'),
+                            stages=data.get('stage_list'))
             await state.clear()
             return await message.answer('Олимпиада успешно добавлена')
         else:
             await message.answer("Добавьте новый этап")
             await state.set_state(Admin.add_stage)
     except Exception as err:
-        print(logging.error(err))
+
         await message.answer("Введите правильный формат данных!")

@@ -8,6 +8,8 @@ import logging
 
 async def on_startup(bot: Bot):
     await set_commands(bot)
+    # for i in ADMIN_IDS:
+    #     await set_commands(bot, i)
 
 
 async def on_shutdown(bot: Bot):
