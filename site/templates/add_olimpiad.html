@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<form action="/add_stages" method="post">
+  <label for="olimpiad">Olimpiad:</label><br>
+  <input type="text" id="olimpiad" name="olimpiad"><br><br>
+
+  <label for="description">Description:</label><br>
+  <textarea id="description" name="description"></textarea><br><br>
+
+  <label for="number">Number:</label><br>
+  <input type="number" id="number" name="number"><br><br>
+
+  <input type="checkbox" id="private" name="private">
+  <label for="private">Private</label><br><br>
+
+  <input type="submit" value="Submit">
+</form>
+{% endblock %}

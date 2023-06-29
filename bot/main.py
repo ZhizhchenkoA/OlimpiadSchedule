@@ -1,15 +1,14 @@
 from aiogram import Bot, Dispatcher
-from config import BOT_TOKEN, DATABASE, ADMIN_IDS
+from config import BOT_TOKEN, DATABASE, ADMIN_IDS, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
 from utils.commands import set_commands
 import asyncio
 from routers import basic, set_settings, admin
 import logging
+from aiogram.fsm.storage.redis import RedisStorage
 
 
 async def on_startup(bot: Bot):
     await set_commands(bot)
-    # for i in ADMIN_IDS:
-    #     await set_commands(bot, i)
 
 
 async def on_shutdown(bot: Bot):
@@ -18,7 +17,8 @@ async def on_shutdown(bot: Bot):
 
 async def main():
     bot = Bot(token=BOT_TOKEN, parse_mode='HTML')
-    dp = Dispatcher()
+    storage = RedisStorage.from_url(f'redis://root:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0')
+    dp = Dispatcher(storage=storage)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     dp.include_routers(basic.router, set_settings.router, admin.router)
